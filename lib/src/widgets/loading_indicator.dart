@@ -7,10 +7,12 @@ class LoadingIndicatorCustom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return loading
-        ? Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [Center(child: CircularProgressIndicator())])
+        ? Center(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [Center(child: CircularProgressIndicator())]),
+          )
         : Container();
   }
 }

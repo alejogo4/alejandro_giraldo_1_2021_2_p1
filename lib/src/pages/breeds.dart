@@ -1,4 +1,6 @@
 import 'package:alejandro_giraldo_1_2021_2_p1/src/models/breeds_model.dart';
+import 'package:alejandro_giraldo_1_2021_2_p1/src/pages/breed_detail.dart';
+import 'package:alejandro_giraldo_1_2021_2_p1/src/pages/home.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/providers/breed_provider.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/utils/assets_address.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/utils/size.dart';
@@ -6,10 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/widgets/app_bar.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/widgets/drawer.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/widgets/loading_indicator.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 
 class BreedsPage extends StatefulWidget {
   const BreedsPage({Key? key}) : super(key: key);
-  static final String routeName = "locations_page";
+  static const String routeName = "breeds_page";
 
   @override
   _BreedsPageState createState() => _BreedsPageState();
@@ -19,17 +23,38 @@ class _BreedsPageState extends State<BreedsPage> {
   final BreedProvider _breedProvider = BreedProvider();
   final ScrollController _scrollController = ScrollController();
   List<Breed> _breeds = [];
-  int _page = 1;
   bool _loading = false;
+
+  Icon actionIcon = Icon(Icons.search);
+  Widget appBarTitle = Text("Razas");
+  TextEditingController controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchLocations();
+    fetchBreeds();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        fetchLocations();
+        fetchBreeds();
+      }
+    });
+
+    controller.addListener(() {
+      if (controller.text.isEmpty) {
+        fetchBreeds();
+      } else {
+        List<Breed> filteredList = [];
+        for (var breed in _breeds) {
+          if (breed.breed
+              .toLowerCase()
+              .contains(controller.text.toLowerCase())) {
+            filteredList.add(breed);
+          }
+        }
+        setState(() {
+          _breeds = filteredList;
+        });
       }
     });
   }
@@ -37,7 +62,9 @@ class _BreedsPageState extends State<BreedsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: appBar(title: 'Razas'),
+        appBar: appBar(
+          title: 'Razas',
+        ),
         drawer: NavDrawer(),
         body: Stack(
           children: [
@@ -50,7 +77,61 @@ class _BreedsPageState extends State<BreedsPage> {
         ));
   }
 
-  Future fetchLocations() async {
+  AppBar appBar({required String title}) {
+    return AppBar(
+      elevation: 0.1,
+      title: appBarTitle,
+      actions: <Widget>[
+        IconButton(
+          icon: actionIcon,
+          onPressed: () {
+            setState(() {
+              if (actionIcon.icon == Icons.search) {
+                actionIcon = const Icon(Icons.close);
+                appBarTitle = TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.search, color: Colors.white),
+                    hintText: "Search...",
+                    hintStyle: TextStyle(color: Colors.white),
+                  ),
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                  autofocus: true,
+                  cursorColor: Colors.white,
+                );
+              } else {
+                actionIcon = const Icon(Icons.search);
+                appBarTitle = const Text("Razas");
+                controller.clear();
+                fetchBreeds();
+              }
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Future fetchBreeds() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _loading = false;
+      });
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: 'Verifica que estes conectado a internet.',
+          actions: <AlertDialogAction>[
+            AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      Navigator.pushNamedAndRemoveUntil(
+          context, HomePage.routeName, (route) => false);
+      return;
+    }
+
     _loading = true;
     setState(() {});
     _breeds += await _breedProvider.getBreeds();
@@ -73,7 +154,10 @@ class _BreedsPageState extends State<BreedsPage> {
 
   Widget EpisodeCard({required Breed breed}) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.pushNamed(context, BreedDetail.routeName,
+            arguments: {"name": breed.breed});
+      },
       child: Card(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -119,5 +203,11 @@ class _BreedsPageState extends State<BreedsPage> {
                 fit: BoxFit.cover, image: AssetImage(AssetsApp.breedImage))),
       ),
     ));
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }

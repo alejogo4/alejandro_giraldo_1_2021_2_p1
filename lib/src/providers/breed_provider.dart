@@ -1,3 +1,4 @@
+import 'package:alejandro_giraldo_1_2021_2_p1/src/models/breed_detail_model.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/models/breeds_model.dart';
 
 import 'base_provider.dart';
@@ -26,5 +27,24 @@ class BreedProvider extends Provider {
     }
 
     return breeds;
+  }
+
+  Future<List<BreedImages>> getBreedImages({required String name}) async {
+    var url = Uri.parse("$baseUrl/breed/$name/images");
+    http.Response response = await http.get(url);
+    List<BreedImages> images = [];
+
+    if (response.statusCode == 200) {
+      Map mapData = await json.decode(response.body);
+      var data = mapData["message"];
+      for (String? value in data) {
+        if (value != null || value != "") {
+          BreedImages b = BreedImages(image: value!);
+          images.add(b);
+        }
+      }
+    }
+
+    return images;
   }
 }
