@@ -48,7 +48,7 @@ class _BreedDetailState extends State<BreedDetail> {
                 Container(
                   margin: const EdgeInsets.only(top: 10.0),
                   child: Text(
-                    _loading ? _params["name"].toUpperCase() : "",
+                    !_loading ? _params["name"].toUpperCase() : "",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: GlobalSize.width * 0.08,
