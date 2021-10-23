@@ -1,3 +1,4 @@
+import 'package:alejandro_giraldo_1_2021_2_p1/src/pages/breeds.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/pages/home.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/utils/assets_address.dart';
 import 'package:alejandro_giraldo_1_2021_2_p1/src/utils/colors.dart';
@@ -36,6 +37,11 @@ class _NavDrawerState extends State<NavDrawer> {
                   .pushReplacementNamed(HomePage.routeName),
               title: GlobalText.home,
               iconData: Icons.home),
+          navItem(
+              callBack: () => Navigator.of(context)
+                  .pushReplacementNamed(BreedsPage.routeName),
+              title: GlobalText.breed,
+              iconData: Icons.pets),
         ],
       ),
     );
